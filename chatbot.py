@@ -2,63 +2,37 @@ import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import google.generativeai as genai
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-import uuid
-import time
 
 # Initialize Flask app
 app = Flask(__name__)
 CORS(app, resources={r"/chat": {"origins": "*", "allow_headers": ["Content-Type"]}})
 
-# Set API Key for Gemini
-GOOGLE_API_KEY = 'AIzaSyA1Rnv5FsdF5Ex77cJEbg_-cCA7tMcFDt4'
+# Set environment variables for Render deployment
+GOOGLE_API_KEY = ('AIzaSyA1Rnv5FsdF5Ex77cJEbg_-cCA7tMcFDt4')
 genai.configure(api_key=GOOGLE_API_KEY)
+
+# Set Google Application Credentials from the environment variable
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "credentials.json"  # This assumes 'credentials.json' is in the same directory
 
 # Initialize the model and chat
 model = genai.GenerativeModel('gemini-pro')
 app.chat = model.start_chat(history=[])
 
-# Define chatbot context
-CONTEXT = """You are NOVA, a proactive and adaptable customer service agent for Nexobotics. Your role is to guide users, particularly business owners, on how Nexobotics can transform their customer service by handling all customer interactions efficiently and attentively while maximizing customer satisfaction..."""  # (Context remains the same)
-
-# Google Sheets Authentication
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
-client = gspread.authorize(creds)
-
-# Open the Google Sheet
-sheet = client.open("Chatbot Conversations").worksheet("Chats")  # Replace with your sheet name
+# Define the chatbot's context
+CONTEXT = """You are NOVA, a proactive and adaptable customer service agent for Nexobotics. Your role is to guide users, particularly business owners, on how Nexobotics can transform their customer service by handling all customer interactions efficiently and attentively while maximizing customer satisfaction. You also act as a consultant, offering actionable insights to enhance customer satisfaction and loyalty. Adapt your communication style to match the user's tone. Respond casually if the user speaks casually (e.g., "Hey, what's up?") or professionally if they communicate formally. Always ensure clarity and relevance in your responses while minimizing unnecessary explanations unless explicitly requested. Write all responses in plain text. Never use the (*) symbol, bold, italics, or bullet points. Communicate in paragraphs, ensuring smooth flow and readability. If providing an ordered list, begin a new paragraph for each item in the list to maintain clarity and structure. Use unique and engaging opening and closing lines. Keep greetings short and dynamic (e.g., "Hi! Let's talk Nexobotics."). End conversations with motivational and engaging lines (e.g., "Looking forward to helping you elevate your customer experience!"). Stay concise, focused, and results-oriented, delivering valuable insights quickly without overwhelming the user. Maintain a friendly and approachable tone while ensuring your responses are practical and impactful."""
 
 @app.route('/chat', methods=['POST'])
 def chat_endpoint():
     if not request.is_json:
         return jsonify({'error': 'Content-Type must be application/json'}), 400
 
-    data = request.json
-    message = data.get("message")
-    session_id = data.get("sessionId")  # Get session ID from frontend
-
+    message = request.json.get('message')
     if not message:
         return jsonify({'error': 'Message is required'}), 400
 
-    # Generate a new session ID if it's not provided
-    if not session_id:
-        session_id = str(uuid.uuid4())
-
     try:
-        # Generate AI response
         response = app.chat.send_message(f"{CONTEXT}\nUser: {message}")
-        ai_response = response.text
-
-        # Timestamp
-        timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
-
-        # Append to Google Sheets
-        sheet.append_row([session_id, message, ai_response, timestamp])
-
-        return jsonify({'response': ai_response, 'sessionId': session_id})
-
+        return jsonify({'response': response.text})
     except Exception as e:
         print(f"Error processing message: {str(e)}")  # For debugging
         return jsonify({'error': 'An error occurred processing your request'}), 500
