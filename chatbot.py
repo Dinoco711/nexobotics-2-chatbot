@@ -9,7 +9,7 @@ import gspread
 app = Flask(__name__)
 CORS(app, resources={r"/chat": {"origins": "*", "allow_headers": ["Content-Type"]}})
 
-# Set environment variable for Google Sheets API authentication
+# Set Google API Key
 GOOGLE_API_KEY = 'AIzaSyA1Rnv5FsdF5Ex77cJEbg_-cCA7tMcFDt4'
 genai.configure(api_key=GOOGLE_API_KEY)
 
@@ -22,11 +22,14 @@ CONTEXT = """You are NOVA, a proactive and adaptable customer service agent for 
 
 # Google Sheets setup
 SHEET_NAME = "Chatbot_Conversations"  # Replace with your Google Sheet name
-SHEET_TAB_NAME = "Chat"  # Replace with the sheet tab name
+SHEET_TAB_NAME = "Chats"  # Replace with the sheet tab name
+
+# Path to credentials.json file (direct assignment)
+CREDENTIALS_PATH = "credentials.json"  # Ensure this file is in the same directory or specify the correct path
 
 # Authenticate with Google Sheets using the service account credentials
 creds = Credentials.from_service_account_file(
-    os.getenv('GOOGLE_APPLICATION_CREDENTIALS'), 
+    CREDENTIALS_PATH, 
     scopes=["https://www.googleapis.com/auth/spreadsheets"]
 )
 
