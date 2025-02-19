@@ -39,8 +39,11 @@ try:
         credentials_dict,
         scopes=["https://www.googleapis.com/auth/spreadsheets"]
     )
+
+    # Explicitly tell gspread to use these credentials instead of looking for a file
     client = gspread.authorize(creds)
     sheet = client.open(SHEET_NAME).worksheet(SHEET_TAB_NAME)
+
 except Exception as e:
     raise Exception(f"Error connecting to Google Sheets: {str(e)}")
 
