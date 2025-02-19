@@ -28,19 +28,17 @@ CONTEXT = """You are NOVA, a proactive and adaptable customer service agent for 
 SHEET_NAME = "Chatbot_Conversations"  # Replace with your Google Sheet name
 SHEET_TAB_NAME = "Chats"  # Replace with the sheet tab name
 
-# Load credentials from environment variable
+# Load Google service account credentials from environment variable
 credentials_json = os.getenv("GOOGLE_CREDENTIALS_JSON")
 if not credentials_json:
     raise Exception("GOOGLE_CREDENTIALS_JSON environment variable not set!")
 
-credentials_dict = json.loads(credentials_json)
-creds = Credentials.from_service_account_info(
-    credentials_dict,
-    scopes=["https://www.googleapis.com/auth/spreadsheets"]
-)
-
-# Authorize and access the Google Sheet
 try:
+    credentials_dict = json.loads(credentials_json)  # Convert JSON string to dictionary
+    creds = Credentials.from_service_account_info(
+        credentials_dict,
+        scopes=["https://www.googleapis.com/auth/spreadsheets"]
+    )
     client = gspread.authorize(creds)
     sheet = client.open(SHEET_NAME).worksheet(SHEET_TAB_NAME)
 except Exception as e:
