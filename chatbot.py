@@ -34,14 +34,23 @@ if not credentials_json:
     raise Exception("GOOGLE_CREDENTIALS_JSON environment variable not set!")
 
 try:
-    credentials_dict = json.loads(credentials_json)  # Convert JSON string to dictionary
+    # Convert JSON string to dictionary
+    credentials_dict = json.loads(credentials_json)
+
+    # Create credentials from dictionary with updated scopes
     creds = Credentials.from_service_account_info(
         credentials_dict,
-        scopes=["https://www.googleapis.com/auth/spreadsheets"]
+        scopes=[
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive"
+        ]
     )
 
-    # Explicitly tell gspread to use these credentials instead of looking for a file
-    client = gspread.authorize(creds)
+    # Authorize gspread using the in-memory credentials
+    client = gspread.Client(auth=creds)
+    client.session = gspread.httpsession.AuthorizedSession(creds)
+
+    # Access the Google Sheet
     sheet = client.open(SHEET_NAME).worksheet(SHEET_TAB_NAME)
 
 except Exception as e:
