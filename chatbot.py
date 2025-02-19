@@ -26,7 +26,7 @@ app.chat = model.start_chat(history=[])
 CONTEXT = """You are NOVA, a proactive and adaptable customer service agent for Nexobotics..."""  # Keep the rest of your context
 
 # Google Sheets setup
-SHEET_NAME = "Chatbot_Conversations"  # Change to your Google Sheet name
+SHEET_NAME = "Chatbot Conversations"  # Change to your Google Sheet name
 SHEET_TAB_NAME = "Chats"  # Change to your sheet tab name
 
 # Load credentials from environment variable
